@@ -3,7 +3,7 @@ package distributed.links
 import akka.actor._
 import scala.util.Random
 import akka.event.LoggingReceive
-import distributed.links.LinkCommon._
+import distributed.Common._
 
 class FairLossPointToPointLink extends Actor with ActorLogging {
 

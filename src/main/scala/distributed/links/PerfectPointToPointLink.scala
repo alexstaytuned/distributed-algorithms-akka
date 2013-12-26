@@ -1,7 +1,7 @@
 package distributed.links
 
 import akka.actor._
-import distributed.links.LinkCommon._
+import distributed.Common._
 
 class PerfectPointToPointLink extends Actor with ActorLogging {
 

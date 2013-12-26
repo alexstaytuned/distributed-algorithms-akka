@@ -2,13 +2,11 @@ package distributed
 
 import akka.actor._
 import distributed.links.PerfectPointToPointLink
-import distributed.links.LinkCommon._
-import distributed.failuredetector.FailureDetectorCommon._
 import distributed.leader.EventualLeaderDetector
-import distributed.leader.LeaderCommon.Trust
+import distributed.Common._
 
 case object PutOnLink
-case class Initialize(allProcs: List[ActorRef])
+
 
 class Playa extends Actor with ActorLogging {
   val link = context.actorOf(Props[PerfectPointToPointLink], "PerfectLink")

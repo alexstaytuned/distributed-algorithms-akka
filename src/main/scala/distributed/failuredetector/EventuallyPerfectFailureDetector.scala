@@ -3,18 +3,8 @@ package distributed.failuredetector
 import akka.actor._
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
-import distributed.Initialize
 import distributed.links.PerfectPointToPointLink
-import distributed.links.LinkCommon._
-import distributed.failuredetector.FailureDetectorCommon._
-
-object FailureDetectorCommon {
-  case object Gather
-  case class Suspect(process: ActorRef)
-  case class Restore(process: ActorRef)
-  val HeartbeatRequest = "HeartBeatRequest"
-  val HeartbeatReply = "HeartBeatReply"
-}
+import distributed.Common._
 
 class EventuallyPerfectFailureDetector extends Actor with ActorLogging {
 

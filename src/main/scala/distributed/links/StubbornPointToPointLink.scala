@@ -4,8 +4,7 @@ import akka.actor._
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 import akka.event.LoggingReceive
-import distributed.links.LinkCommon._
-
+import distributed.Common._
 
 class StubbornPointToPointLink extends Actor with ActorLogging {
 

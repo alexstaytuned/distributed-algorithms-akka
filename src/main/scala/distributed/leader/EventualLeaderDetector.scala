@@ -3,16 +3,11 @@ package distributed.leader
 import akka.actor._
 import akka.event.LoggingReceive
 import distributed.failuredetector.EventuallyPerfectFailureDetector
-import distributed.Initialize
-import distributed.failuredetector.FailureDetectorCommon._
 import scala.concurrent.ExecutionContext.Implicits.global
+import distributed.Common._
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.duration._
-import distributed.leader.LeaderCommon.Trust
-
-object LeaderCommon {
-  case class Trust(leader: ActorRef)
-}
+import distributed.Common.Initialize
 
 class EventualLeaderDetector extends Actor with ActorLogging {
 
@@ -47,7 +42,7 @@ class EventualLeaderDetector extends Actor with ActorLogging {
   }
 
   def maxRank(procs: Seq[ActorRef]): Option[ActorRef] = {
-    procs size match {
+    procs.size match {
       case 0 => None
       case _ =>
         val (max, _) = procs.zip(procs.map(_.hashCode())).maxBy { case (proc, hash) => hash }

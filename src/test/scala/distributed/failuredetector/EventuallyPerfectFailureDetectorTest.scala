@@ -6,10 +6,9 @@ import akka.testkit.{TestProbe, ImplicitSender, TestKit}
 import org.scalatest.junit.JUnitRunner
 import org.junit.runner.RunWith
 import org.scalatest.matchers.ShouldMatchers
-import distributed.links.LinkCommon.{Deliver, Message, Send}
+import distributed.Common._
 import scala.concurrent.duration._
-import distributed.Initialize
-import distributed.failuredetector.FailureDetectorCommon.{Restore, Suspect}
+import distributed.Common.Initialize
 
 @RunWith(classOf[JUnitRunner])
 class EventuallyPerfectFailureDetectorTest  extends TestKit(ActorSystem("EPFDTest"))
