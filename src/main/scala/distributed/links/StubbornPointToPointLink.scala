@@ -1,16 +1,16 @@
-package links
+package distributed.links
 
 import akka.actor._
-import scala.collection.mutable
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 import akka.event.LoggingReceive
-import links.LinkCommon._
+import distributed.links.LinkCommon._
+
 
 class StubbornPointToPointLink extends Actor with ActorLogging {
 
   val fairLossLink = context.actorOf(Props[FairLossPointToPointLink], "FairLossLink")
-  val resendAfter = 500 millis
+  val resendAfter = 500.millis
   case class SendWithSender(sendMessage: Send, originalSender: ActorRef)
   var messages = List.empty[SendWithSender]
 

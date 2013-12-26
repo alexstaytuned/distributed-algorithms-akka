@@ -1,4 +1,4 @@
-package links
+package distributed.links
 
 import akka.actor.ActorRef
 
