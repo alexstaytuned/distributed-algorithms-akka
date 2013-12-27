@@ -1,6 +1,5 @@
 package distributed.broadcast
 
-import distributed.failuredetector.EventuallyPerfectFailureDetector
 import org.scalatest._
 import akka.actor._
 import akka.testkit.{TestProbe, ImplicitSender, TestKit}
@@ -8,7 +7,6 @@ import org.scalatest.junit.JUnitRunner
 import org.junit.runner.RunWith
 import org.scalatest.matchers.ShouldMatchers
 import distributed.Common._
-import scala.concurrent.duration._
 import distributed.Common.Initialize
 
 @RunWith(classOf[JUnitRunner])
@@ -44,7 +42,7 @@ with ImplicitSender {
   }
 
   class Process(probe: ActorRef) extends Actor {
-    val beb = context.actorOf(Props[BestEffortBroadcast], "Broadcast")
+    val beb = context.actorOf(Props.apply(new BestEffortBroadcast(self)), "Broadcast")
     var processes = List.empty[ActorRef]
     def receive = {
       case i @ Initialize(procs) =>

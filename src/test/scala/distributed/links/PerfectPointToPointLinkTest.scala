@@ -22,7 +22,7 @@ with ImplicitSender {
     val bob = system.actorOf(Props.apply(new Process(probe.ref)), "bob")
 
     val msg = Message("blah", ts = 1l)
-    alice ! Send(bob, msg)
+    alice ! Send(alice, bob, msg)
     within(300 millis) {
       probe.expectMsg(Deliver(alice, msg))
     }
@@ -35,7 +35,7 @@ with ImplicitSender {
   class Process(probe: ActorRef) extends Actor {
     val link = context.actorOf(Props[PerfectPointToPointLink], "PerfectLink")
     def receive = {
-      case s @ Send(dst, msg) =>
+      case s @ Send(from, dst, msg) =>
         link ! s
       case x =>
         probe forward x

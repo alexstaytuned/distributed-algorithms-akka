@@ -7,11 +7,10 @@ import org.scalatest.junit.JUnitRunner
 import org.junit.runner.RunWith
 import org.scalatest.matchers.ShouldMatchers
 import distributed.Common._
-import scala.concurrent.duration._
 import distributed.Common.Initialize
 
 @RunWith(classOf[JUnitRunner])
-class EventuallyPerfectFailureDetectorTest  extends TestKit(ActorSystem("EPFDTest"))
+class EventuallyPerfectFailureDetectorTest extends TestKit(ActorSystem("EPFDTest"))
 with FunSuite
 with BeforeAndAfterAll
 with ShouldMatchers
@@ -43,7 +42,7 @@ with ImplicitSender {
   case object Resurrect
 
   class Process(probe: ActorRef) extends Actor {
-    def initDetector = context.actorOf(Props[EventuallyPerfectFailureDetector], "Detector")
+    def initDetector = context.actorOf(Props.apply(new EventuallyPerfectFailureDetector(self)), "Detector")
     var detector = initDetector
     var processes = List.empty[ActorRef]
     def receive = {

@@ -9,8 +9,8 @@ class PerfectPointToPointLink extends Actor with ActorLogging {
   var delivered = List.empty[Deliver]
 
   def receive = {
-    case send @ Send(to, msg) =>
-      stubbornLink forward Send(to, msg)
+    case send @ Send(from, to, msg) =>
+      stubbornLink ! send
     case d @ Deliver(from, msg) if sender == stubbornLink =>
       if(! delivered.contains(d)) {
         delivered ::= d

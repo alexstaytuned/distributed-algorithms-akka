@@ -9,12 +9,12 @@ import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.duration._
 import distributed.Common.Initialize
 
-class EventualLeaderDetector extends Actor with ActorLogging {
+class EventualLeaderDetector(ownerProcess: ActorRef) extends Actor with ActorLogging {
 
   case object CheckLeadership
 
   var allProcs = List.empty[ActorRef]
-  val detector = context.actorOf(Props[EventuallyPerfectFailureDetector], "FailureDetector")
+  val detector = context.actorOf(Props.apply(new EventuallyPerfectFailureDetector(ownerProcess)), "FailureDetector")
   val suspected = ArrayBuffer.empty[ActorRef]
 
   var leader: Option[ActorRef] = None

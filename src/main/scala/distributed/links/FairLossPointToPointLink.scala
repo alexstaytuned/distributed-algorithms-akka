@@ -11,7 +11,7 @@ class FairLossPointToPointLink extends Actor with ActorLogging {
   val dropPercentage = 0
 
   def receive = LoggingReceive {
-    case Send(to, message) =>
+    case Send(from, to, message) =>
       if(rnd.nextInt(100) > dropPercentage) {
         /**
          * This is where the boundary of actor relationships is crossed. All previous messages
@@ -21,7 +21,7 @@ class FairLossPointToPointLink extends Actor with ActorLogging {
          * The way that fairLossLink is found is jenky - can be improved
          */
         val pathForOther = mergePaths(to.path.toString, self.path.toString)
-        context.actorSelection(pathForOther) ! Deliver(sender, message)
+        context.actorSelection(pathForOther) ! Deliver(from, message)
       } // else -- drop it, simulating a real loss link
     case d @ Deliver(from, message) =>
       context.parent ! d

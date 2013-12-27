@@ -11,15 +11,15 @@ case object PutOnLink
 class Playa extends Actor with ActorLogging {
   val link = context.actorOf(Props[PerfectPointToPointLink], "PerfectLink")
 //  val detector = context.actorOf(Props[EventuallyPerfectFailureDetector], "FailureDetector")
-  val leader = context.actorOf(Props[EventualLeaderDetector], "LeaderDetector")
+  val leader = context.actorOf(Props.apply(new EventualLeaderDetector(self)), "LeaderDetector")
 
   var nufSaid = 0
   def receive = {
-    case s @ Send(friend, _) => link ! Send(friend, Message("hellooo from " + self.path.name))
+    case s @ Send(self, friend, _) => link ! Send(self, friend, Message("hellooo from " + self.path.name))
     case Deliver(from, msg) =>
       println(self.path.name +  " got: " + msg)
       if(nufSaid < 3) {
-        link ! Send(from, Message("hi you from " + self.path.name + " # " + nufSaid))
+        link ! Send(self, from, Message("hi you from " + self.path.name + " # " + nufSaid))
         nufSaid += 1
       }
     case Initialize(all) =>
@@ -38,7 +38,7 @@ object Main extends App {
   val system = ActorSystem("DistributedSystem")
   val playaOne = system.actorOf(Props[Playa], "Jose")
   val playaTwo = system.actorOf(Props[Playa], "Don")
-  playaOne ! Send(playaTwo, Message(""))
+  playaOne ! Send(playaOne, playaTwo, Message(""))
   playaOne ! Initialize(List(playaOne, playaTwo))
   playaTwo ! Initialize(List(playaOne, playaTwo))
   Thread.sleep(10000)

@@ -4,7 +4,7 @@ import akka.actor._
 import distributed.Common._
 import distributed.links.PerfectPointToPointLink
 
-class BestEffortBroadcast extends Actor with ActorLogging {
+class BestEffortBroadcast(ownerProcess: ActorRef) extends Actor with ActorLogging {
   var allProcs = List.empty[ActorRef]
   val link = context.actorOf(Props[PerfectPointToPointLink], "PerfectLink")
 
@@ -13,7 +13,7 @@ class BestEffortBroadcast extends Actor with ActorLogging {
       allProcs = procs
     case Broadcast(m) =>
       allProcs.foreach { proc =>
-        link forward Send(proc, m)
+        link ! Send(ownerProcess, proc, m)
       }
     case d @ Deliver(source, m) =>
       context.parent ! d

@@ -6,7 +6,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import distributed.links.PerfectPointToPointLink
 import distributed.Common._
 
-class EventuallyPerfectFailureDetector extends Actor with ActorLogging {
+class EventuallyPerfectFailureDetector(ownerProcess: ActorRef) extends Actor with ActorLogging {
 
   var allProcs: List[ActorRef] = List.empty[ActorRef]
 
@@ -35,14 +35,14 @@ class EventuallyPerfectFailureDetector extends Actor with ActorLogging {
         } else if(alivePaths.contains(procPath) && suspectedPaths.contains(procPath)) {
           context.parent ! Restore(proc)
         }
-        link ! Send(proc, Message(HeartbeatRequest))
+        link ! Send(ownerProcess, proc, Message(HeartbeatRequest))
       }
       alivePaths = List.empty
       context.system.scheduler.scheduleOnce(delay, self, Gather)
     case Deliver(s, Message(HeartbeatReply, _)) =>
       alivePaths ::= normalizedPath(s)
     case Deliver(s, Message(HeartbeatRequest, _)) =>
-      link ! Send(s, Message(HeartbeatReply))
+      link ! Send(ownerProcess, s, Message(HeartbeatReply))
   }
 
   def normalizedPath(a: ActorRef) = {
