@@ -12,8 +12,8 @@ class EventuallyPerfectFailureDetector(ownerProcess: ActorRef) extends Actor wit
 
   // use Paths because the responses may come from children of allProcs members
   // this means we need to normalize those to allProcs paths
-  var alivePaths: List[ActorPath] = List.empty
-  var suspectedPaths: List[ActorPath] = List.empty
+  var alive: List[ActorRef] = List.empty
+  var suspected: List[ActorRef] = List.empty
   val link = context.actorOf(Props[PerfectPointToPointLink], "PerfectLink")
   val delayIncrement = 300.millis
   var delay = delayIncrement
@@ -21,26 +21,25 @@ class EventuallyPerfectFailureDetector(ownerProcess: ActorRef) extends Actor wit
   def receive = {
     case Initialize(all) =>
       allProcs = all
-      alivePaths = all.map(_.path)
+      alive = all
       context.system.scheduler.scheduleOnce(delay, self, Gather)
     case Gather =>
-      if(alivePaths.toSet.intersect(suspectedPaths.toSet).size > 0) {
+      if(alive.toSet.intersect(suspected.toSet).size > 0) {
         delay = delay + delayIncrement
       } // else -- keep the delay constant, no errors were found
       allProcs.foreach { proc =>
-        val procPath = proc.path
-        if(! alivePaths.contains(procPath) && ! suspectedPaths.contains(procPath)) {
-          suspectedPaths ::= procPath
+        if(! alive.contains(proc) && ! suspected.contains(proc)) {
+          suspected ::= proc
           context.parent ! Suspect(proc)
-        } else if(alivePaths.contains(procPath) && suspectedPaths.contains(procPath)) {
+        } else if(alive.contains(proc) && suspected.contains(proc)) {
           context.parent ! Restore(proc)
         }
         link ! Send(ownerProcess, proc, Message(HeartbeatRequest))
       }
-      alivePaths = List.empty
+      alive = List.empty
       context.system.scheduler.scheduleOnce(delay, self, Gather)
     case Deliver(s, Message(HeartbeatReply, _)) =>
-      alivePaths ::= normalizedPath(s)
+      alive ::= s
     case Deliver(s, Message(HeartbeatRequest, _)) =>
       link ! Send(ownerProcess, s, Message(HeartbeatReply))
   }

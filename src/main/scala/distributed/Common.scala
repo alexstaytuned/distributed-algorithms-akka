@@ -4,7 +4,7 @@ import akka.actor.ActorRef
 
 object Common {
   case class Initialize(allProcs: List[ActorRef])
-  case class Message(content: String, ts: Long = System.currentTimeMillis())
+  case class Message(content: Any, ts: Long = System.currentTimeMillis())
 
   // links
   case class Send(source: ActorRef, destination: ActorRef, v: Message)
@@ -22,8 +22,17 @@ object Common {
 
   // consensus common
   case class StartEpoch(ts: Long, leader: ActorRef)
-  case class InitializeEpochChange(allProcs: List[ActorRef], lastTs: Long, leader: ActorRef, selfRank: Int)
+  case class InitializeEpochChange(allProcs: List[ActorRef], leader: ActorRef, selfRank: Int)
+  case class InitializeEpochConsensus(allProcs: List[ActorRef], leader: ActorRef, ts: Long, state: EpochState)
+  case class NewEpochMessage(ts: Long)
+  case class Propose(value: Int)
+  case class EpochState(ts: Long, value: Option[Int])
+  case class Decide(v: Int)
+  case object Abort
+  case class Aborted(state: EpochState)
 
   // broadcast common
   case class Broadcast(m: Message)
+  val EpochConsensusRead = "Read"
+
 }
