@@ -24,6 +24,7 @@ object Common {
   case class StartEpoch(ts: Long, leader: ActorRef)
   case class InitializeEpochChange(allProcs: List[ActorRef], leader: ActorRef, selfRank: Int)
   case class InitializeEpochConsensus(allProcs: List[ActorRef], leader: ActorRef, ts: Long, state: EpochState)
+  case class InitializeUniformConsensus(allProcs: List[ActorRef], initLeader: ActorRef)
   case class NewEpochMessage(ts: Long)
   case class Propose(value: Int)
   case class EpochState(ts: Long, value: Option[Int])

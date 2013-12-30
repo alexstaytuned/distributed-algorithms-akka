@@ -30,10 +30,9 @@ with ImplicitSender {
       i += 1
     }
 
-    val msg = probe.receiveOne(200 millis)
+    val msg = probe.receiveOne(2000 millis)
     var leader: ActorRef = alice
     var epoch: Long = -1
-    var secondEpoch: Long = -1
     msg match {
       case StartEpoch(ts, l) =>
         ts should be > 0l
@@ -41,9 +40,9 @@ with ImplicitSender {
         epoch = ts
     }
 
-    probe.receiveN(procs.size - 1 /* already received the first one */).foreach {
+    probe.receiveWhile(200 millis, 100 millis, 100) {
       case StartEpoch(ts, l) =>
-        ts should equal(epoch)
+        ts should be >= epoch
         l should be === leader
     }
 
@@ -51,9 +50,8 @@ with ImplicitSender {
 
     probe.receiveN(procs.size - 1 /* one is already dead */).foreach {
       case StartEpoch(ts, l) =>
-        ts should be > epoch
+        ts should be >= epoch
         l should not be leader
-        secondEpoch = ts
     }
   }
 
@@ -61,13 +59,20 @@ with ImplicitSender {
     system.shutdown()
   }
 
-  class Process(probe: ActorRef) extends Actor {
+  class Process(probe: ActorRef) extends Actor with ActorLogging {
+    var lastEpoch: Long = -1
     var changer = context.actorOf(Props.apply(new EpochChange(self)), "EpochChange")
     def receive = {
       case Die => context.stop(changer)
       case e @ InitializeEpochChange(procs, initLeader, rank) =>
         changer ! e
       case x =>
+        x match {
+          case StartEpoch(newTs, _) =>
+            if(lastEpoch >= newTs) fail("New epoch must be bigger than the last")
+            lastEpoch = newTs
+          case _ =>
+        }
         probe forward x
     }
   }

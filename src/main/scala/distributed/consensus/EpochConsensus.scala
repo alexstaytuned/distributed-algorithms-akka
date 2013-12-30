@@ -5,7 +5,11 @@ import distributed.links.PerfectPointToPointLink
 import distributed.Common._
 import distributed.broadcast.BestEffortBroadcast
 
-class EpochConsensus (ownerProcess: ActorRef) extends Actor with ActorLogging {
+/**
+ * This is an implementation of Paxos
+ * @param ownerProcess
+ */
+class EpochConsensus(ownerProcess: ActorRef) extends Actor with ActorLogging {
   var allProcs = List.empty[ActorRef]
   val link = context.actorOf(Props[PerfectPointToPointLink], "PerfectLink")
   val beb = context.actorOf(Props.apply(new BestEffortBroadcast(ownerProcess)), "Broadcast")
@@ -24,6 +28,7 @@ class EpochConsensus (ownerProcess: ActorRef) extends Actor with ActorLogging {
     case Propose(_value) if ownerProcess == leader =>
       tmpval = Some(_value)
       beb ! Broadcast(Message(EpochConsensusRead))
+      log.info(s"${ownerProcess.path.name} asking for opinions")
     case Deliver(asker, Message(EpochConsensusRead, _)) =>
       link ! Send(source = ownerProcess, destination = asker, Message(EpochState(valts, value)))
     case Deliver(subordinate, Message(state @ EpochState(ts, v), _)) if ownerProcess == leader =>
@@ -34,6 +39,7 @@ class EpochConsensus (ownerProcess: ActorRef) extends Actor with ActorLogging {
       if(maxTsState.value.isDefined) tmpval = maxTsState.value
       states = Map.empty
       beb ! Broadcast(Message(Write(tmpval.get)))
+    case CheckStateReads => log.info(s"${ownerProcess.path.name}: not enough reads yet (${states.size} out of ${allProcs.size / 2 + 1}}), waiting")
     case Deliver(asker, Message(write @ Write(v), _)) =>
       value = Some(v)
       valts = ets
@@ -43,11 +49,16 @@ class EpochConsensus (ownerProcess: ActorRef) extends Actor with ActorLogging {
       self ! CheckWrites
     case CheckWrites if accepted > allProcs.size / 2 =>
       accepted = 0
+      log.info(s"${ownerProcess.path.name}: broadcasting the decision")
       beb ! Broadcast(Message(Decided(tmpval.get)))
+    case CheckWrites => log.info(s"${ownerProcess.path.name}: not enough accepts yet (${accepted} out of ${allProcs.size / 2 + 1}}), waiting")
     case Deliver(asker, Message(Decided(v), _)) =>
+      log.info(s"${ownerProcess.path.name}: got a broadcast of a decision from ${asker.path.name}")
       context.parent ! Decide(v)
     case Abort =>
+      log.info(s"Epoch $ets is aborted")
       context.parent ! Aborted(EpochState(valts, value))
+      context.stop(self)
   }
 
   def highest = states.maxBy { case (_, EpochState(ts, _)) => ts }._2 /* state */

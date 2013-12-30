@@ -18,7 +18,7 @@ class StubbornPointToPointLink extends Actor with ActorLogging {
     case send @ Send(from, to, msg) =>
       messages ::= send
       fairLossLink ! send
-      context.system.scheduler.scheduleOnce(resendAfter, self, Resend)
+//      context.system.scheduler.scheduleOnce(resendAfter, self, Resend)
     case Resend =>
       messages.foreach { msg =>
         fairLossLink ! msg

@@ -8,7 +8,7 @@ import org.junit.runner.RunWith
 import org.scalatest.matchers.ShouldMatchers
 import distributed.Common._
 import scala.concurrent.duration._
-import distributed.TestCommon.{Resurrect, Die}
+import distributed.TestCommon.Die
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
@@ -33,7 +33,7 @@ with ImplicitSender {
       i += 1
     }
 
-    val msg = probe.receiveOne(200 millis)
+    val msg = probe.receiveOne(700 millis)
     var leader: ActorRef = alice
     var epoch: Long = -1
     msg match {
@@ -50,8 +50,8 @@ with ImplicitSender {
 
     val decisions = probe.receiveN(4)
     decisions.foreach {
-        case Decide(value) =>
-        case _ => fail("Not a correct message")
+      case Decide(value) =>
+      case _ => fail("Not a correct message")
     }
   }
 
@@ -59,7 +59,7 @@ with ImplicitSender {
     system.shutdown()
   }
 
-  class Process(probe: ActorRef) extends Actor {
+  class Process(probe: ActorRef) extends Actor with ActorLogging {
     var changer = context.actorOf(Props.apply(new EpochChange(self)), "EpochChange")
     var consensus = context.actorOf(Props.apply(new EpochConsensus(self)), "EpochConsensus")
     def receive = {

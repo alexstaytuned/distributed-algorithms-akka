@@ -30,16 +30,15 @@ class EpochChange(ownerProcess: ActorRef) extends Actor with ActorLogging {
     case Deliver(leader, Message(NewEpochMessage(newTs), _)) =>
       if(leader == trusted && newTs > lastTs) {
         lastTs = newTs
+        log.info(s"${ownerProcess.path.name} Starting epoch consensus: $newTs (leader: ${leader.path.name})")
         context.parent ! StartEpoch(newTs, leader)
       } else {
         link ! Send(ownerProcess, leader, Message(NewEpochNACK))
       }
-    case Deliver(subordinate, Message(NewEpochNACK, _)) =>
-      if(trusted == ownerProcess) {
-        ts += allProcs.size
-        beb ! Broadcast(Message(NewEpochMessage(ts)))
-      } // else -- not the leader, no-op
+    case Deliver(subordinate, Message(NewEpochNACK, _)) if trusted == ownerProcess =>
+      ts += allProcs.size
+      beb ! Broadcast(Message(NewEpochMessage(ts)))
   }
-
-  case object NewEpochNACK
 }
+
+case object NewEpochNACK
