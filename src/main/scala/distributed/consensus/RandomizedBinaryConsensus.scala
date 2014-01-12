@@ -24,6 +24,9 @@ class CommonCoin extends Actor {
   }
 }
 
+/**
+ * Aka Ben Or (for binary decisions)
+ */
 class RandomizedBinaryConsensus (ownerProcess: ActorRef) extends Actor with FSM[Phase, Unit] with ActorLogging {
   var allProcs = List.empty[ActorRef]
   var N = allProcs.size; var f = allProcs.size / 2 - 1 // will be redefined when allProcs is init'd
